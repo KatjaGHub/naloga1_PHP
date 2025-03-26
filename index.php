@@ -1,10 +1,3 @@
-<?php
-/*
-	Vstopna točka naše aplikacije. Vse zahteve gredo skozi index.php, ki poskrbi za ustrezno obravnavo.
-	V URL-ju se bosta podala dva parametra: controller in action, ki bosta določala, katera akcija se izvede.
-	S pomočjo .htaccess lahko skrajšamo URL naslove (več v .htaccess datoteki).
-*/
-
 require_once('connection.php');
 
 session_start();
