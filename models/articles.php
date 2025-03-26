@@ -1,13 +1,6 @@
 <?php
-/*
-    Model za novico. Vsebuje lastnosti, ki definirajo strukturo novice in sovpadajo s stolpci v bazi.
-
-    V modelu moramo definirati tudi relacije oz. povezane entitete/modele. V primeru novice je to $user, ki 
-    povezuje novico z uporabnikom, ki je novico objavil. Relacija nam poskrbi za nalaganje podatkov o uporabniku, 
-    da nimamo samo user_id, ampak tudi username, ...
-*/
-
-require_once 'users.php'; // Vključimo model za uporabnike
+require_once('connection.php');
+require_once 'users.php'; 
 
 class Article
 {
@@ -55,4 +48,80 @@ class Article
         }
         return null;
     }
+
+    // Metoda za ustvarjanje nove novice
+    public static function create($title, $abstract, $text, $user_id) {
+        $db = Db::getInstance();
+        $title = mysqli_real_escape_string($db, $title);
+        $abstract = mysqli_real_escape_string($db, $abstract);
+        $text = mysqli_real_escape_string($db, $text);
+        $user_id = mysqli_real_escape_string($db, $user_id);
+    
+        $query = "INSERT INTO articles (title, abstract, text, user_id, date) VALUES ('$title', '$abstract', '$text', '$user_id', NOW())";
+        echo "SQL Query: " . $query . "<br>"; //Dodaj to za debug
+        $res = $db->query($query);
+    
+        if ($res) {
+            // Vrni novo ustvarjeno novico (z ID-jem, ki ga je dodelila baza)
+            $new_id = $db->insert_id;
+            return self::find($new_id);
+        } else {
+            echo "Database Error: " . $db->error . "<br>"; //Preveri napako
+            return null; // Napaka pri ustvarjanju
+        }
+    }
+
+    // Metoda za iskanje novic glede na ID uporabnika
+    public static function findByUserId($user_id) {
+        $db = Db::getInstance();
+        $user_id = intval($user_id); // Pretvori v integer za varnost
+        $query = "SELECT * FROM articles WHERE user_id = '$user_id'";  // Uporabi prepared statements za varnost
+        $res = $db->query($query);
+
+        $articles = array();
+        while ($article = $res->fetch_object()) {
+            array_push($articles, new Article($article->id, $article->title, $article->abstract, $article->text, $article->date, $article->user_id));
+        }
+        return $articles;
+    }
+    
+    // Metoda za posodabljanje obstoječe novice
+    public function update($title, $abstract, $text) {
+        $db = Db::getInstance();
+        $id = mysqli_real_escape_string($db, $this->id);
+        $title = mysqli_real_escape_string($db, $title);
+        $abstract = mysqli_real_escape_string($db, $abstract);
+        $text = mysqli_real_escape_string($db, $text);
+    
+        $query = "UPDATE articles SET title = '$title', abstract = '$abstract', text = '$text' WHERE id = '$id';";
+        echo "SQL Query: " . $query . "<br>";  //Dodaj to za debug
+    
+        $res = $db->query($query);
+    
+        if ($res) {
+            $this->title = $title;
+            $this->abstract = $abstract;
+            $this->text = $text;
+            return true;
+        } else {
+            echo "Error: " . $db->error; //PREVERI NAPAKO
+            return false;
+        }
+    }
+
+    // Metoda za brisanje novice
+    public function delete()
+{
+    $db = Db::getInstance();
+    $id = mysqli_real_escape_string($db, $this->id);
+    $query = "DELETE FROM articles WHERE id = '$id';";
+    echo "Delete SQL Query: " . $query . "<br>"; // Dodaj to
+    $res = $db->query($query);
+
+    if (!$res) {
+        echo "Error deleting article: " . $db->error . "<br>"; // Dodaj to
+    }
+    return (bool) $res;
+    
+}
 }

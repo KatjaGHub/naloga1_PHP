@@ -27,7 +27,7 @@ $controllers = array(
   'pages' => ['error'],
   'users' => ['create', 'store'],
   'auth' => ['login', 'authenticate'],
-  'articles' => ['index', 'show']
+  'articles' => ['index', 'show', 'list', 'edit','create']
 );
 // Če je prijavljen, mu dovolimo še urejanje profila, odjavo in objavo novic
 if(isset($_SESSION["USER_ID"])){
